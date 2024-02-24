@@ -1,0 +1,27 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - [ master ]  # Change this to your default branch if it's not 'main'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Your build steps go here, for example npm install & npm build for a Node.js app
+
+    - name: Deploy to EC2
+      env:
+        PRIVATE_KEY: ${{ secrets.DEPLOY_KEY }}
+        HOST: 35.180.63.136
+        USER: ec2-user
+      run: |
+        echo "$PRIVATE_KEY" > deploy_key
+        chmod 600 deploy_key
+        rsync -e 'ssh -i deploy_key -o StrictHostKeyChecking=no' -av ./dist/ $USER@$HOST:/opt/myapp/
+        rm -f deploy_key
